@@ -1,2 +1,0 @@
-[console_scripts]
-stream-codec-bench = stream_codec_lab.benchmark:main

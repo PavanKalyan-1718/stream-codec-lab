@@ -1,8 +1,0 @@
-Metadata-Version: 2.4
-Name: stream-codec-lab
-Version: 0.1.0
-Summary: Reproducible compression benchmarks for event-stream workloads.
-Author: Pavan Kalyan
-Requires-Python: >=3.10
-License-File: LICENSE
-Dynamic: license-file
