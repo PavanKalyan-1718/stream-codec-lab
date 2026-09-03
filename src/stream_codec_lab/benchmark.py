@@ -9,12 +9,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .codecs import Codec, available_codecs
-from .dataset import generate_events
+from .dataset import WORKLOADS, generate_events
 
 
 @dataclass(frozen=True)
 class BenchmarkResult:
     codec: str
+    workload: str
     input_bytes: int
     compressed_bytes: int
     compression_ratio: float
@@ -26,7 +27,9 @@ def _throughput(bytes_processed: int, seconds: float) -> float:
     return round(bytes_processed / (1024 * 1024) / seconds, 2)
 
 
-def benchmark_codec(codec: Codec, payload: bytes, iterations: int = 3) -> BenchmarkResult:
+def benchmark_codec(
+    codec: Codec, payload: bytes, iterations: int = 3, workload: str = "repetitive"
+) -> BenchmarkResult:
     """Benchmark a codec and verify every round trip before reporting it."""
     if iterations < 1:
         raise ValueError("iterations must be positive")
@@ -47,6 +50,7 @@ def benchmark_codec(codec: Codec, payload: bytes, iterations: int = 3) -> Benchm
 
     return BenchmarkResult(
         codec=codec.name,
+        workload=workload,
         input_bytes=len(payload),
         compressed_bytes=len(compressed),
         compression_ratio=round(len(payload) / len(compressed), 3),
@@ -55,19 +59,20 @@ def benchmark_codec(codec: Codec, payload: bytes, iterations: int = 3) -> Benchm
     )
 
 
-def run_benchmark(events: int, iterations: int) -> list[BenchmarkResult]:
-    payload = generate_events(events)
-    return [benchmark_codec(codec, payload, iterations) for codec in available_codecs()]
+def run_benchmark(events: int, iterations: int, workload: str = "repetitive") -> list[BenchmarkResult]:
+    payload = generate_events(events, workload=workload)
+    return [benchmark_codec(codec, payload, iterations, workload) for codec in available_codecs()]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark standard-library compression codecs.")
     parser.add_argument("--events", type=int, default=50_000)
     parser.add_argument("--iterations", type=int, default=3)
+    parser.add_argument("--workload", choices=WORKLOADS, default="repetitive")
     parser.add_argument("--output", type=Path, help="Optional JSON results path")
     args = parser.parse_args()
 
-    results = run_benchmark(args.events, args.iterations)
+    results = run_benchmark(args.events, args.iterations, args.workload)
     rendered = json.dumps([asdict(result) for result in results], indent=2)
     print(rendered)
     if args.output:
@@ -77,4 +82,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -19,11 +19,20 @@ git clone https://github.com/PavanKalyan-1718/stream-codec-lab.git
 cd stream-codec-lab
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e . pytest
-stream-codec-bench --events 50000 --iterations 3 --output benchmarks/latest.json
+stream-codec-bench --events 50000 --iterations 3 --workload repetitive --output benchmarks/latest.json
 pytest -q
 ```
 
-The report includes input size, compressed size, compression ratio, compression throughput, and decompression throughput.
+The report includes workload, input size, compressed size, compression ratio, compression throughput, and decompression throughput.
+
+### Compare workload shapes
+
+```bash
+stream-codec-bench --events 50000 --iterations 3 --workload repetitive
+stream-codec-bench --events 50000 --iterations 3 --workload high-cardinality
+```
+
+`repetitive` models telemetry with repeatable dimensions such as region and service. `high-cardinality` adds trace, session, and resource identifiers, making the payload closer to observability data where repeated values are less common. This avoids treating a single highly compressible dataset as a universal conclusion.
 
 ## Design notes
 
