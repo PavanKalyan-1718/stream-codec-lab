@@ -30,9 +30,12 @@ The report includes workload, input size, compressed size, compression ratio, co
 ```bash
 stream-codec-bench --events 50000 --iterations 3 --workload repetitive
 stream-codec-bench --events 50000 --iterations 3 --workload high-cardinality
+stream-codec-bench --events 50000 --iterations 3 --workload all --output benchmarks/comparison.json
 ```
 
 `repetitive` models telemetry with repeatable dimensions such as region and service. `high-cardinality` adds trace, session, and resource identifiers, making the payload closer to observability data where repeated values are less common. This avoids treating a single highly compressible dataset as a universal conclusion.
+
+Use `--workload all` for a single, directly comparable result set across both data shapes. This makes tradeoffs visible before selecting a codec for a production data path.
 
 ## Design notes
 

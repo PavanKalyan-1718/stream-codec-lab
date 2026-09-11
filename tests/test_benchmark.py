@@ -41,3 +41,9 @@ def test_run_benchmark_covers_all_codecs() -> None:
     results = run_benchmark(events=100, iterations=1, workload="high-cardinality")
     assert len(results) == len(available_codecs())
     assert {result.workload for result in results} == {"high-cardinality"}
+
+
+def test_all_workloads_returns_a_comparable_suite() -> None:
+    results = run_benchmark(events=100, iterations=1, workload="all")
+    assert len(results) == len(WORKLOADS) * len(available_codecs())
+    assert {result.workload for result in results} == set(WORKLOADS)

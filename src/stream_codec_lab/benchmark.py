@@ -11,6 +11,8 @@ from pathlib import Path
 from .codecs import Codec, available_codecs
 from .dataset import WORKLOADS, generate_events
 
+ALL_WORKLOADS = "all"
+
 
 @dataclass(frozen=True)
 class BenchmarkResult:
@@ -59,16 +61,31 @@ def benchmark_codec(
     )
 
 
-def run_benchmark(events: int, iterations: int, workload: str = "repetitive") -> list[BenchmarkResult]:
-    payload = generate_events(events, workload=workload)
-    return [benchmark_codec(codec, payload, iterations, workload) for codec in available_codecs()]
+def run_benchmark(
+    events: int, iterations: int, workload: str = "repetitive"
+) -> list[BenchmarkResult]:
+    """Run one workload or a comparable suite across every supported workload."""
+    selected_workloads = WORKLOADS if workload == ALL_WORKLOADS else (workload,)
+    results = []
+    for selected_workload in selected_workloads:
+        payload = generate_events(events, workload=selected_workload)
+        results.extend(
+            benchmark_codec(codec, payload, iterations, selected_workload)
+            for codec in available_codecs()
+        )
+    return results
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark standard-library compression codecs.")
     parser.add_argument("--events", type=int, default=50_000)
     parser.add_argument("--iterations", type=int, default=3)
-    parser.add_argument("--workload", choices=WORKLOADS, default="repetitive")
+    parser.add_argument(
+        "--workload",
+        choices=(*WORKLOADS, ALL_WORKLOADS),
+        default="repetitive",
+        help="Benchmark one data shape or every workload with 'all'.",
+    )
     parser.add_argument("--output", type=Path, help="Optional JSON results path")
     args = parser.parse_args()
 
